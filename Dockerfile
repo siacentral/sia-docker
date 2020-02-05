@@ -10,7 +10,7 @@ RUN echo "Install Build Tools" && apk update && apk upgrade && apk add --no-cach
 RUN echo "Clone Sia Repo" && git clone -b $SIA_VERSION https://gitlab.com/NebulousLabs/Sia.git /app
 
 RUN echo "Build Sia" && mkdir /app/releases && go build -a -tags 'netgo' -trimpath \
-	-ldflags="-s -w -X 'gitlab.com/NebulousLabs/Sia/build.GitRevision=`git rev-parse --short HEAD`' -X 'gitlab.com/NebulousLabs/Sia/build.BuildTime=`date`' -X 'gitlab.com/NebulousLabs/Sia/build.ReleaseTag=${SIA_VERSION}'" \
+	-ldflags="-s -w -X 'gitlab.com/NebulousLabs/Sia/build.GitRevision=`git rev-parse --short HEAD`' -X 'gitlab.com/NebulousLabs/Sia/build.BuildTime=`date`'" \
 	-o /app/releases ./cmd/siad ./cmd/siac
 
 # run sia
