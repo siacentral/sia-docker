@@ -5,13 +5,13 @@ ARG SIA_VERSION=master
 
 WORKDIR /app
 
-RUN echo "Install Build Tools" && apk update && apk upgrade && apk add --no-cache bash gcc musl-dev openssl git
+RUN echo "Install Build Tools" && apk update && apk upgrade && apk add --no-cache gcc musl-dev openssl git
 
 RUN echo "Clone Sia Repo" && git clone -b $SIA_VERSION https://gitlab.com/NebulousLabs/Sia.git /app
 
-RUN echo "Build Sia" && go build -a -tags 'netgo' -trimpath \
+RUN echo "Build Sia" && mkdir /app/releases && go build -a -tags 'netgo' -trimpath \
 	-ldflags="-s -w -X 'gitlab.com/NebulousLabs/Sia/build.GitRevision=`git rev-parse --short HEAD`' -X 'gitlab.com/NebulousLabs/Sia/build.BuildTime=`date`' -X 'gitlab.com/NebulousLabs/Sia/build.ReleaseTag=${SIA_VERSION}'" \
-	-o . /app/cmd/siad /app/cmd/siac
+	-o /app/releases /app/cmd/siad /app/cmd/siac
 
 # run sia
 FROM alpine:latest
@@ -20,8 +20,7 @@ ENV SIA_MODULES gctwhr
 
 EXPOSE 9980 9981 9982
 
-COPY --from=buildgo /app/siac ./siac
-COPY --from=buildgo /app/siad ./siad
+COPY --from=buildgo /app/releases/* ./
 
 RUN echo "Install Socat" && apk update && apk upgrade && apk add --no-cache socat
 
