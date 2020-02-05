@@ -7,9 +7,7 @@ WORKDIR /app
 
 RUN echo "Install Build Tools" && apk update && apk upgrade && apk add --no-cache bash gcc musl-dev openssl git
 
-RUN echo "Clone Sia Repo" && git clone https://gitlab.com/NebulousLabs/Sia.git /app
-
-RUN echo "Checkout ${SIA_VERSION}" && git checkout $SIA_VERSION
+RUN echo "Clone Sia Repo" && git clone -b $SIA_VERSION https://gitlab.com/NebulousLabs/Sia.git /app
 
 RUN echo "Build Sia" && go build -a -tags 'netgo' -trimpath \
 	-ldflags="-s -w -X 'gitlab.com/NebulousLabs/Sia/build.GitRevision=`git rev-parse --short HEAD`' -X 'gitlab.com/NebulousLabs/Sia/build.BuildTime=`date`' -X 'gitlab.com/NebulousLabs/Sia/build.ReleaseTag=${SIA_VERSION}'" \
