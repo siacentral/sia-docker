@@ -25,4 +25,4 @@ COPY --from=buildgo /app/releases/* ./
 RUN echo "Install Socat" && apk update && apk upgrade && apk add --no-cache socat
 
 ENTRYPOINT socat tcp-listen:9980,reuseaddr,fork tcp:localhost:8000 & \
-	./siad -d /sia-data --modules gctwhr --api-addr "localhost:8000"
+	./siad -d /sia-data --modules $SIA_MODULES --api-addr "localhost:8000"
