@@ -11,7 +11,7 @@ RUN echo "Clone Sia Repo" && git clone -b $SIA_VERSION https://gitlab.com/Nebulo
 
 RUN echo "Build Sia" && mkdir /app/releases && go build -a -tags 'netgo' -trimpath \
 	-ldflags="-s -w -X 'gitlab.com/NebulousLabs/Sia/build.GitRevision=`git rev-parse --short HEAD`' -X 'gitlab.com/NebulousLabs/Sia/build.BuildTime=`date`' -X 'gitlab.com/NebulousLabs/Sia/build.ReleaseTag=${SIA_VERSION}'" \
-	-o /app/releases /app/cmd/siad /app/cmd/siac
+	-o /app/releases ./cmd/siad ./cmd/siac
 
 # run sia
 FROM alpine:latest
