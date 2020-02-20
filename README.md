@@ -92,7 +92,7 @@ repository using Docker's `--build-arg` flag. Any valid `git checkout` ref can
 be used with the `SIA_VERSION` build arg.
 
 ```
-docker build --build-arg SIA_VERSION=v1.4.2.1 -t siacentral/docker-sia .
+docker build --build-arg SIA_VERSION=v1.4.2.1 -t siacentral/sia:1.4.2.1 .
 ```
 
 ## /build
