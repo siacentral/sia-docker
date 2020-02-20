@@ -1,5 +1,11 @@
-Based on https://github.com/mtlynch/docker-sia but allows for building any commit or
-version of Sia from source instead of downloading the official releases.
+An unofficial docker image for Sia. Automatically builds Sia using the source code from the official repository: https://gitlab.com/NebulousLabs/Sia
+
+# Release Tags
+
++ latest - the latest stable Sia release
++ versions - builds of exact Sia releases such as: `1.4.3` or `1.4.2.1`
++ unstable - an unstable build of Sia's master branch. Updated every 15 minutes
+
 
 # Usage
 
@@ -9,6 +15,7 @@ version of Sia from source instead of downloading the official releases.
 docker volume create sia-data
 docker run \
   --detach \
+  --restart unless-stopped \
   --mount type=volume,src=sia-data,target=/sia-data \
   --publish 127.0.0.1:9980:9980 \
   --publish 9981:9981 \
@@ -23,7 +30,8 @@ docker run \
 docker volume create sia-data
 docker run \
   --detach \
-  --env gct \
+  --restart unless-stopped \
+  -e SIA_MODULES="gct" \
   --mount type=volume,src=sia-data,target=/sia-data \
   --publish 127.0.0.1:9980:9980 \
   --publish 9981:9981 \
@@ -38,7 +46,7 @@ docker run \
 docker volume create sia-data
 docker run \
   --detach \
-  --env gctwr \
+  -e SIA_MODULES="gctwr" \
   --mount type=volume,src=sia-data,target=/sia-data \
   --publish 127.0.0.1:9980:9980 \
   --publish 9981:9981 \
@@ -52,7 +60,8 @@ docker run \
 docker volume create sia-data
 docker run \
   --detach \
-  --env gctwh \
+  --restart unless-stopped \
+  -e SIA_MODULES="gctwh" \
   --mount type=volume,src=sia-data,target=/sia-data \
   --publish 127.0.0.1:9980:9980 \
   --publish 9981:9981 \
