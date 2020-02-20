@@ -71,7 +71,7 @@ be used with the `SIA_VERSION` build arg.
 docker build --build-arg SIA_VERSION=v1.4.2.1 -t siacentral/docker-sia .
 ```
 
-# /build
+## /build
 
 A simple GoLang CLI that checks any tags matching the version ID regex
 from NebulousLabs/Sia and compares them to matching tags from a Docker Hub repo. 
