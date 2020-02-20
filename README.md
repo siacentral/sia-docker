@@ -6,6 +6,21 @@ An unofficial docker image for Sia. Automatically builds Sia using the source co
 + versions - builds of exact Sia releases such as: `1.4.3` or `1.4.2.1`
 + unstable - an unstable build of Sia's master branch. Updated every 15 minutes
 
+**Get latest release:**
+```
+docker pull siacentral/sia:latest
+```
+
+**Get Sia v1.4.2.1**
+```
+docker pull siacentral/sia:1.4.2.1
+```
+
+**Get unstable dev branch**
+```
+docker pull siacentral/sia:unstable
+```
+
 
 # Usage
 
