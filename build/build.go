@@ -122,6 +122,10 @@ func main() {
 
 	}
 
+	if len(successfulTags) == 0 {
+		log.Println("No new releases")
+	}
+
 	log.Println("Building unstable")
 
 	//build the unstable master branch
@@ -144,10 +148,5 @@ func main() {
 	successfulTags = append(successfulTags, "unstable")
 
 	//log pushed tags
-	if len(successfulTags) > 0 {
-		log.Println("Successfully built and pushed:", strings.Join(successfulTags, ", "))
-		return
-	}
-
-	log.Fatalln("No new releases built")
+	log.Println("Successfully built and pushed:", strings.Join(successfulTags, ", "))
 }
