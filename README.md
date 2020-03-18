@@ -1,4 +1,4 @@
-An unofficial docker image for Sia. Automatically builds Sia using the source code from the official repository: https://gitlab.com/siacentral/sia
+An unofficial docker image for Sia. Automatically builds Sia using the source code from the official repository: https://gitlab.com/NebulousLabs/Sia
 
 # Release Tags
 
