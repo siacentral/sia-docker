@@ -48,7 +48,7 @@ blockchain to remain consistent between container restarts or updates.
 Containers should never share volumes. If multiple sia containers are 
 needed one unique volume should be created per container.
 
-## Sia API Password
+### Sia API Password
 
 When you create or update the Sia container a random API password will be
 generated. You may need to copy the new API password when connecting outside of
