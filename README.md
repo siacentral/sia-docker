@@ -1,20 +1,3 @@
-An unofficial docker image for Sia. Automatically builds Sia using the source code from the official repository: https://gitlab.com/NebulousLabs/Sia
-
-# Release Tags
-
-+ latest - the latest stable Sia release
-+ versions - builds of exact Sia releases such as: `1.4.3` or `1.4.2.1`
-+ unstable - an unstable build of Sia's master branch. Updated every 15 minutes
-
-**Get latest release:**
-```
-docker pull siacentral/sia:latest
-```
-
-**Get Sia v1.4.2.1**
-```
-docker pull siacentral/sia:1.4.2.1
-```
 An unofficial docker image for Sia. Automatically builds Sia using the source code from the official repository: https://gitlab.com/siacentral/sia
 
 # Release Tags
