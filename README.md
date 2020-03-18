@@ -58,7 +58,7 @@ ensure that the API password stays the same between updates and restarts.
 
 ### Using Specific Modules
 
-By specifying the docker argument `-e` you can pass in different combinations of
+By specifying the environment variable `SIA_MODULES` you can pass in different combinations of
 Sia modules to run. For example: `-e SIA_MODULES="gct"` tells Sia to only run
 the gateway, consensus, and transactionpool modules.
 
