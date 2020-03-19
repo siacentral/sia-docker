@@ -92,7 +92,6 @@ func handleRelease(tag, commit string, latest bool) (successful []string, err er
 }
 
 func main() {
-
 	flag.StringVar(&dockerHubRepo, "docker-hub-repo", "", "the docker hub repository to push to")
 	flag.StringVar(&dockerPath, "docker-path", "/usr/bin/docker", "the path to docker")
 	flag.BoolVar(&overwrite, "overwrite", false, "overwrite existing tags with new builds")
@@ -129,7 +128,7 @@ func main() {
 			continue
 		}
 
-		// tags are normalized without the leading "v", so we need to add it for the commit
+		// tags are normalized without the leading "v", so we need to add it for the commit id
 		pushed, err := handleRelease(tag, "v"+tag, tag == latest)
 		if err != nil {
 			log.Fatalln(err)
