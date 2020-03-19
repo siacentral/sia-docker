@@ -12,6 +12,12 @@ import (
 	"github.com/siacentral/docker-sia/build/data"
 )
 
+var (
+	dockerPath    string
+	dockerHubRepo string
+	overwrite     bool
+)
+
 func handleOutput(out io.Reader) {
 	in := bufio.NewScanner(out)
 
@@ -46,9 +52,46 @@ func runCommand(command string, args ...string) error {
 	return nil
 }
 
+func handleRelease(tag, commit string, latest bool) (successful []string, err error) {
+	log.Printf("Building %s from %s", tag, commit)
+
+	dockerTag := fmt.Sprintf("%s:%s", dockerHubRepo, tag)
+	buildArgs := []string{"build",
+		"--build-arg",
+		fmt.Sprintf("SIA_VERSION=%s", commit),
+		"-t", dockerTag}
+
+	// if this is the latest full release tag it with latest too
+	if latest {
+		buildArgs = append(buildArgs, "-t", fmt.Sprintf("%s:latest", dockerHubRepo))
+	}
+
+	buildArgs = append(buildArgs, ".")
+	err = runCommand(dockerPath, buildArgs...)
+	if err != nil {
+		return
+	}
+
+	err = runCommand(dockerPath, "push", dockerTag)
+	if err != nil {
+		return nil, err
+	}
+
+	successful = append(successful, tag)
+
+	// if this is the latest tag push it to docker hub too
+	if latest {
+		err = runCommand(dockerPath, "push", fmt.Sprintf("%s:latest", dockerHubRepo))
+		if err != nil {
+			return
+		}
+		successful = append(successful, fmt.Sprintf("latest (%s)", tag))
+	}
+
+	return
+}
+
 func main() {
-	var dockerPath, dockerHubRepo string
-	var overwrite bool
 
 	flag.StringVar(&dockerHubRepo, "docker-hub-repo", "", "the docker hub repository to push to")
 	flag.StringVar(&dockerPath, "docker-path", "/usr/bin/docker", "the path to docker")
@@ -86,66 +129,25 @@ func main() {
 			continue
 		}
 
-		log.Println("Building ", tag)
-		dockerTag := fmt.Sprintf("%s:%s", dockerHubRepo, tag[1:])
-		buildArgs := []string{"build",
-			"--build-arg",
-			fmt.Sprintf("SIA_VERSION=%s", tag),
-			"-t", dockerTag}
-
-		// if this is the latest full release tag it with latest too
-		if tag == latest {
-			buildArgs = append(buildArgs, "-t", fmt.Sprintf("%s:latest", dockerHubRepo))
-		}
-
-		buildArgs = append(buildArgs, ".")
-		err := runCommand(dockerPath, buildArgs...)
+		pushed, err := handleRelease(tag[1:], tag[1:], tag == latest)
 		if err != nil {
 			log.Fatalln(err)
 		}
 
-		err = runCommand(dockerPath, "push", dockerTag)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		successfulTags = append(successfulTags, tag)
-
-		// if this is the latest tag push it to docker hub too
-		if tag == latest {
-			err = runCommand(dockerPath, "push", fmt.Sprintf("%s:latest", dockerHubRepo))
-			if err != nil {
-				log.Fatalln(err)
-			}
-			successfulTags = append(successfulTags, fmt.Sprintf("latest (%s)", tag))
-		}
-
+		successfulTags = append(pushed, successfulTags...)
 	}
 
 	if len(successfulTags) == 0 {
 		log.Println("No new releases")
 	}
 
-	log.Println("Building unstable")
-
 	//build the unstable master branch
-	err = runCommand(dockerPath, "build",
-		"--build-arg",
-		"SIA_VERSION=master",
-		"-t",
-		fmt.Sprintf("%s:unstable", dockerHubRepo),
-		".")
-
+	pushed, err := handleRelease("unstable", "master", false)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	err = runCommand(dockerPath, "push", fmt.Sprintf("%s:unstable", dockerHubRepo))
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	successfulTags = append(successfulTags, "unstable")
+	successfulTags = append(successfulTags, pushed...)
 
 	//log pushed tags
 	log.Println("Successfully built and pushed:", strings.Join(successfulTags, ", "))
