@@ -9,16 +9,21 @@ import (
 )
 
 var (
-	versionNumberReg = regexp.MustCompile(`[^0-9\.]`)
-	gitlabRegex      = regexp.MustCompile(`^v([0-9]+.)+[0-9]\-[\S]+|v([0-9]+.)+[0-9]$`)
-	dockerRegex      = regexp.MustCompile(`^([0-9]+.)+[0-9]\-[\S]+|([0-9]+.)+[0-9]$`)
+	versionReg  = regexp.MustCompile(`([0-9]+.)+[0-9]`)
+	gitlabRegex = regexp.MustCompile(`^v([0-9]+.)+[0-9]$`)
+	dockerRegex = regexp.MustCompile(`^([0-9]+.)+[0-9]$`)
 )
+
+// getVersion returns the SemVer version string from the tag in the format 0.0.0-rc0
+func getVersion(s string) string {
+	return versionReg.FindString(s)
+}
 
 func versionCmp(a, b string) int {
 	l := 0
 
-	a = versionNumberReg.ReplaceAllString(a, "")
-	b = versionNumberReg.ReplaceAllString(b, "")
+	a = versionReg.FindString(a)
+	b = versionReg.FindString(b)
 
 	aParts := strings.Split(a, ".")
 	bParts := strings.Split(b, ".")
@@ -41,6 +46,8 @@ func versionCmp(a, b string) int {
 			if err != nil {
 				return -1
 			}
+		} else {
+			return -1
 		}
 
 		if i < bLen {
@@ -49,6 +56,8 @@ func versionCmp(a, b string) int {
 			if err != nil {
 				return 1
 			}
+		} else {
+			return 1
 		}
 
 		if aPart < bPart {

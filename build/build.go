@@ -117,7 +117,7 @@ func main() {
 	builtTags := make(map[string]bool)
 
 	for _, tag := range built {
-		builtTags[fmt.Sprintf("v%s", tag)] = true
+		builtTags[tag] = true
 	}
 
 	successfulTags := []string{}
@@ -129,16 +129,13 @@ func main() {
 			continue
 		}
 
-		pushed, err := handleRelease(tag[1:], tag[1:], tag == latest)
+		// tags are normalized without the leading "v", so we need to add it for the commit
+		pushed, err := handleRelease(tag, "v"+tag, tag == latest)
 		if err != nil {
 			log.Fatalln(err)
 		}
 
 		successfulTags = append(pushed, successfulTags...)
-	}
-
-	if len(successfulTags) == 0 {
-		log.Println("No new releases")
 	}
 
 	//build the unstable master branch

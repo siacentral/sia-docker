@@ -15,7 +15,7 @@ type (
 	}
 )
 
-//GetDockerTags returns all release tags matching the format v0.0.0.0-rc0
+//GetDockerTags returns all release tags matching the format v0.0.0-rc0
 func GetDockerTags() (tags []string, err error) {
 	getTags := func(url string) (*string, error) {
 		var releaseInfo dockerTagInfo
@@ -51,7 +51,7 @@ func GetDockerTags() (tags []string, err error) {
 				continue
 			}
 
-			tags = append(tags, tag.Name)
+			tags = append(tags, getVersion(tag.Name))
 		}
 
 		return releaseInfo.Next, nil

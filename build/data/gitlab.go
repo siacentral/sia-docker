@@ -55,15 +55,18 @@ func GetGitlabReleases() (tags []string, latest string, err error) {
 		}
 
 		// versions below v1.4.1 won't build properly with the Dockerfile
-		if versionCmp(release.Name, "v1.4.1") == -1 {
+		if versionCmp(release.Name, "1.4.1") == -1 {
 			continue
 		}
 
+		tag := getVersion(release.Name)
+
+		// official releases should not contain extra information after the version
 		if !strings.Contains(release.Name, "-") && versionCmp(release.Name, latest) == 1 {
-			latest = release.Name
+			latest = tag
 		}
 
-		tags = append(tags, release.Name)
+		tags = append(tags, tag)
 	}
 
 	sort.Slice(tags, func(i, j int) bool {
