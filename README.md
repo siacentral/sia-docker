@@ -3,7 +3,7 @@ An unofficial docker image for Sia. Automatically builds Sia using the source co
 # Release Tags
 
 + latest - the latest stable Sia release
-+ versions - builds of exact Sia releases such as: `1.4.4`, `1.4.3` or `1.4.2.1`
++ versions - builds of exact Sia releases such as: `1.4.7`, `1.4.5` or `1.4.2.1`
 + unstable - an unstable build of Sia's master branch. Updated every 15 minutes
 
 **Get latest release:**
@@ -118,5 +118,5 @@ repository using Docker's `--build-arg` flag. Any valid `git checkout` ref can
 be used with the `SIA_VERSION` build arg.
 
 ```
-docker build --build-arg SIA_VERSION=v1.4.2.1 -t siacentral/sia:1.4.2.1 .
+docker build --build-arg SIA_VERSION=v1.4.7 -t siacentral/sia:1.4.7 .
 ```
