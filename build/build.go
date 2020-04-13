@@ -111,10 +111,6 @@ func handleManifest(release string, tags []string) (err error) {
 			parts[0],
 		}
 
-		if parts[0] == "arm64" {
-			annotateArgs = append(annotateArgs, "--variant", "armv8")
-		}
-
 		err = runCommand("docker", annotateArgs...)
 		if err != nil {
 			return
