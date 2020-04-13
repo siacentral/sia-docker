@@ -113,7 +113,7 @@ func handleManifest(release string, tags []string) (err error) {
 		}
 
 		if parts[0] == "arm64" {
-			annotateArgs = append(annotateArgs, "--os", "arm64")
+			annotateArgs = append(annotateArgs, "--os", "linux")
 		}
 
 		err = runCommand("docker", annotateArgs...)
