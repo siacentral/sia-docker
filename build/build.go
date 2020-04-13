@@ -87,9 +87,13 @@ func handleManifest(release string, tags []string) (err error) {
 		releaseTag,
 	}
 
+	log.Printf("Creating manifest for %s", releaseTag)
+
 	for _, tag := range tags {
 		dockerTag := fmt.Sprintf("%s:%s", dockerHubRepo, tag)
 		createArgs = append(createArgs, dockerTag)
+
+		log.Printf("  Adding %s", dockerTag)
 	}
 
 	err = runCommand("docker", createArgs...)
