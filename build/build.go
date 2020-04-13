@@ -72,11 +72,6 @@ func handleRelease(tag, commit string) (successful []string, err error) {
 		return
 	}
 
-	err = runCommand(dockerPath, "push", dockerTag)
-	if err != nil {
-		return nil, err
-	}
-
 	successful = append(successful, dockerTag)
 
 	return
