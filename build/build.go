@@ -225,6 +225,8 @@ func buildManifest() {
 		log.Fatalln(err)
 	}
 
+	releaseTags = append([]string{"latest", "unstable"}, releaseTags...)
+
 	releases := map[string][]string{
 		"latest":   make([]string, 0),
 		"unstable": make([]string, 0),
@@ -254,8 +256,10 @@ func buildManifest() {
 		releases[parts[1]] = append(releases[parts[1]], tag)
 	}
 
-	for release, dockerTags := range releases {
-		if err := handleManifest(release, dockerTags); err != nil {
+	for _, tag := range releaseTags {
+		dockerTags := releases[tag]
+
+		if err := handleManifest(tag, dockerTags); err != nil {
 			log.Fatalln(err)
 		}
 	}
