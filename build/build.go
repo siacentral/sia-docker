@@ -13,6 +13,7 @@ import (
 )
 
 var (
+	archPrefix    string
 	dockerPath    string
 	dockerHubRepo string
 	overwrite     bool
@@ -52,7 +53,7 @@ func runCommand(command string, args ...string) error {
 	return nil
 }
 
-func handleRelease(tag, commit string, latest bool) (successful []string, err error) {
+func handleRelease(tag, commit string) (successful []string, err error) {
 	log.Printf("Building %s from %s", tag, commit)
 
 	dockerTag := fmt.Sprintf("%s:%s", dockerHubRepo, tag)
@@ -60,11 +61,6 @@ func handleRelease(tag, commit string, latest bool) (successful []string, err er
 		"--build-arg",
 		fmt.Sprintf("SIA_VERSION=%s", commit),
 		"-t", dockerTag}
-
-	// if this is the latest full release tag it with latest too
-	if latest {
-		buildArgs = append(buildArgs, "-t", fmt.Sprintf("%s:latest", dockerHubRepo))
-	}
 
 	buildArgs = append(buildArgs, ".")
 	err = runCommand(dockerPath, buildArgs...)
@@ -77,21 +73,21 @@ func handleRelease(tag, commit string, latest bool) (successful []string, err er
 		return nil, err
 	}
 
-	successful = append(successful, tag)
-
-	// if this is the latest tag push it to docker hub too
-	if latest {
-		err = runCommand(dockerPath, "push", fmt.Sprintf("%s:latest", dockerHubRepo))
-		if err != nil {
-			return
-		}
-		successful = append(successful, fmt.Sprintf("latest (%s)", tag))
-	}
+	successful = append(successful, dockerTag)
 
 	return
 }
 
+func dockerHubTag(tag string) string {
+	if len(archPrefix) == 0 {
+		return tag
+	}
+
+	return fmt.Sprintf("%s-%s", archPrefix, tag)
+}
+
 func main() {
+	flag.StringVar(&archPrefix, "arch", "", "the arch prefix to use for multi-arch support on Docker Hub")
 	flag.StringVar(&dockerHubRepo, "docker-hub-repo", "", "the docker hub repository to push to")
 	flag.StringVar(&dockerPath, "docker-path", "/usr/bin/docker", "the path to docker")
 	flag.BoolVar(&overwrite, "overwrite", false, "overwrite existing tags with new builds")
@@ -107,7 +103,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	built, err := data.GetDockerTags()
+	built, err := data.GetDockerTags(archPrefix)
 
 	if err != nil {
 		log.Fatalln(err)
@@ -128,17 +124,44 @@ func main() {
 			continue
 		}
 
+		dockerTag := tag
+
+		if len(archPrefix) != 0 {
+			dockerTag = fmt.Sprintf("%s-%s", archPrefix, tag)
+		}
+
 		// tags are normalized without the leading "v", so we need to add it for the commit id
-		pushed, err := handleRelease(tag, "v"+tag, tag == latest)
+		pushed, err := handleRelease(dockerTag, "v"+tag)
 		if err != nil {
 			log.Fatalln(err)
 		}
 
 		successfulTags = append(pushed, successfulTags...)
+
+		if tag == latest {
+			latestTag := "latest"
+
+			if len(archPrefix) != 0 {
+				latestTag = fmt.Sprintf("%s-%s", archPrefix, "latest")
+			}
+
+			pushed, err := handleRelease(latestTag, "v"+tag)
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			successfulTags = append(pushed, successfulTags...)
+		}
+	}
+
+	unstableTag := "unstable"
+
+	if len(archPrefix) != 0 {
+		unstableTag = fmt.Sprintf("%s-%s", archPrefix, "unstable")
 	}
 
 	//build the unstable master branch
-	pushed, err := handleRelease("unstable", "master", false)
+	pushed, err := handleRelease(unstableTag, "master")
 	if err != nil {
 		log.Fatalln(err)
 	}

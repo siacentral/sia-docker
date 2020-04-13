@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"sort"
+	"strings"
 )
 
 type (
@@ -16,7 +17,11 @@ type (
 )
 
 //GetDockerTags returns all release tags matching the format v0.0.0-rc0
-func GetDockerTags() (tags []string, err error) {
+func GetDockerTags(prefix string) (tags []string, err error) {
+	if len(prefix) != 0 {
+		prefix = prefix + "-"
+	}
+
 	getTags := func(url string) (*string, error) {
 		var releaseInfo dockerTagInfo
 
@@ -47,11 +52,19 @@ func GetDockerTags() (tags []string, err error) {
 		}
 
 		for _, tag := range releaseInfo.Results {
-			if !dockerRegex.MatchString(tag.Name) {
+			name := tag.Name
+
+			if len(prefix) != 0 && !strings.HasPrefix(name, prefix) {
 				continue
 			}
 
-			tags = append(tags, getVersion(tag.Name))
+			name = strings.TrimPrefix(name, prefix)
+
+			if !dockerRegex.MatchString(name) {
+				continue
+			}
+
+			tags = append(tags, getVersion(name))
 		}
 
 		return releaseInfo.Next, nil
