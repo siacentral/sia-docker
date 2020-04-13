@@ -12,7 +12,9 @@ RUN echo "Clone Sia Repo" && git clone -b $SIA_VERSION https://gitlab.com/Nebulo
 # docker makes GIT_DIRTY from the make file break even with a fresh repo
 # updates git's index and makes it work properly again
 RUN git diff --quiet; exit 0
-RUN echo "Build Sia" && make release
+RUN echo "Build Sia" && mkdir /app/releases && go build -a -tags 'netgo' -trimpath \
+	-ldflags="-s -w -X 'gitlab.com/NebulousLabs/Sia/build.GitRevision=`git rev-parse --short HEAD`' -X 'gitlab.com/NebulousLabs/Sia/build.BuildTime=`date`'" \
+	-o /app/releases ./cmd/siad ./cmd/siac
 
 # run sia
 FROM alpine:latest
@@ -21,7 +23,7 @@ ENV SIA_MODULES gctwhr
 
 EXPOSE 9980 9981 9982
 
-COPY --from=buildgo /go/bin/sia* ./
+COPY --from=buildgo /app/releases ./
 
 ENTRYPOINT ./siad \
 	--disable-api-security \

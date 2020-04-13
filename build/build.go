@@ -59,6 +59,7 @@ func handleRelease(tag, commit string) (successful []string, err error) {
 	dockerTag := fmt.Sprintf("%s:%s", dockerHubRepo, tag)
 	buildArgs := []string{"buildx",
 		"build",
+		"--no-cache",
 		"--build-arg",
 		fmt.Sprintf("SIA_VERSION=%s", commit),
 		"--platform",
