@@ -13,7 +13,6 @@ import (
 )
 
 var (
-	archPrefix    string
 	dockerPath    string
 	dockerHubRepo string
 	overwrite     bool
@@ -59,7 +58,6 @@ func handleRelease(tag, commit string) (successful []string, err error) {
 	dockerTag := fmt.Sprintf("%s:%s", dockerHubRepo, tag)
 	buildArgs := []string{"buildx",
 		"build",
-		"--no-cache",
 		"--build-arg",
 		fmt.Sprintf("SIA_VERSION=%s", commit),
 		"--platform",
@@ -85,7 +83,7 @@ func buildDocker() {
 		log.Fatalln(err)
 	}
 
-	built, err := data.GetPrefixedDockerTags(archPrefix)
+	built, err := data.GetDockerTags()
 
 	if err != nil {
 		log.Fatalln(err)
@@ -106,14 +104,8 @@ func buildDocker() {
 			continue
 		}
 
-		dockerTag := tag
-
-		if len(archPrefix) != 0 {
-			dockerTag = fmt.Sprintf("%s-%s", archPrefix, tag)
-		}
-
 		// tags are normalized without the leading "v", so we need to add it for the commit id
-		pushed, err := handleRelease(dockerTag, "v"+tag)
+		pushed, err := handleRelease(tag, "v"+tag)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -121,13 +113,7 @@ func buildDocker() {
 		successfulTags = append(pushed, successfulTags...)
 
 		if tag == latest {
-			latestTag := "latest"
-
-			if len(archPrefix) != 0 {
-				latestTag = fmt.Sprintf("%s-%s", archPrefix, "latest")
-			}
-
-			pushed, err := handleRelease(latestTag, "v"+tag)
+			pushed, err := handleRelease("latest", "v"+tag)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -136,14 +122,8 @@ func buildDocker() {
 		}
 	}
 
-	unstableTag := "unstable"
-
-	if len(archPrefix) != 0 {
-		unstableTag = fmt.Sprintf("%s-%s", archPrefix, "unstable")
-	}
-
 	//build the unstable master branch
-	pushed, err := handleRelease(unstableTag, "master")
+	pushed, err := handleRelease("unstable", "master")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -155,11 +135,14 @@ func buildDocker() {
 }
 
 func main() {
-	flag.StringVar(&archPrefix, "arch", "", "the arch prefix to use for multi-arch support on Docker Hub")
 	flag.StringVar(&dockerHubRepo, "docker-hub-repo", "", "the docker hub repository to push to")
 	flag.StringVar(&dockerPath, "docker-path", "/usr/bin/docker", "the path to docker")
 	flag.BoolVar(&overwrite, "overwrite", false, "overwrite existing tags with new builds")
 	flag.Parse()
+
+	if len(dockerHubRepo) == 0 {
+		log.Fatalln("--docker-hub-repo is required")
+	}
 
 	buildDocker()
 }
