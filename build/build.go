@@ -9,7 +9,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/siacentral/docker-sia/build/data"
+	"github.com/siacentral/sia-docker/build/data"
 )
 
 var (
@@ -52,18 +52,23 @@ func runCommand(command string, args ...string) error {
 	return nil
 }
 
-func handleRelease(tag, commit string) (successful []string, err error) {
-	log.Printf("Building %s from %s", tag, commit)
+func handleRelease(commit string, tags ...string) (successful []string, err error) {
+	log.Printf("Building %s from %s", strings.Join(tags, ", "), commit)
 
-	dockerTag := fmt.Sprintf("%s:%s", dockerHubRepo, tag)
+	builtTags := []string{}
 	buildArgs := []string{"buildx",
 		"build",
 		"--build-arg",
 		fmt.Sprintf("SIA_VERSION=%s", commit),
 		"--platform",
 		"linux/amd64,linux/arm64",
-		"--push",
-		"-t", dockerTag}
+		"--push"}
+
+	for _, tag := range tags {
+		tag = fmt.Sprintf("%s:%s", dockerHubRepo, tag)
+		buildArgs = append(buildArgs, "-t", tag)
+		builtTags = append(builtTags, tag)
+	}
 
 	buildArgs = append(buildArgs, ".")
 	err = runCommand(dockerPath, buildArgs...)
@@ -71,7 +76,7 @@ func handleRelease(tag, commit string) (successful []string, err error) {
 		return
 	}
 
-	successful = append(successful, dockerTag)
+	successful = append(successful, builtTags...)
 
 	return
 }
@@ -104,26 +109,23 @@ func buildDocker() {
 			continue
 		}
 
+		tags := []string{tag}
+
+		if tag == latest {
+			tags = append(tags, "latest")
+		}
+
 		// tags are normalized without the leading "v", so we need to add it for the commit id
-		pushed, err := handleRelease(tag, "v"+tag)
+		pushed, err := handleRelease("v"+tag, tags...)
 		if err != nil {
 			log.Fatalln(err)
 		}
 
 		successfulTags = append(pushed, successfulTags...)
-
-		if tag == latest {
-			pushed, err := handleRelease("latest", "v"+tag)
-			if err != nil {
-				log.Fatalln(err)
-			}
-
-			successfulTags = append(pushed, successfulTags...)
-		}
 	}
 
 	//build the unstable master branch
-	pushed, err := handleRelease("unstable", "master")
+	pushed, err := handleRelease("master", "unstable")
 	if err != nil {
 		log.Fatalln(err)
 	}
