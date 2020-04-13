@@ -57,9 +57,12 @@ func handleRelease(tag, commit string) (successful []string, err error) {
 	log.Printf("Building %s from %s", tag, commit)
 
 	dockerTag := fmt.Sprintf("%s:%s", dockerHubRepo, tag)
-	buildArgs := []string{"build",
+	buildArgs := []string{"buildx",
 		"--build-arg",
 		fmt.Sprintf("SIA_VERSION=%s", commit),
+		"--platform",
+		"linux/amd64,linux/arm64",
+		"--push",
 		"-t", dockerTag}
 
 	buildArgs = append(buildArgs, ".")
@@ -76,70 +79,6 @@ func handleRelease(tag, commit string) (successful []string, err error) {
 	successful = append(successful, dockerTag)
 
 	return
-}
-
-func handleManifest(release string, tags []string) (err error) {
-	releaseTag := fmt.Sprintf("%s:%s", dockerHubRepo, release)
-	createArgs := []string{
-		"manifest",
-		"create",
-		releaseTag,
-	}
-
-	log.Printf("Creating manifest for %s", releaseTag)
-
-	for _, tag := range tags {
-		dockerTag := fmt.Sprintf("%s:%s", dockerHubRepo, tag)
-		createArgs = append(createArgs, dockerTag)
-
-		log.Printf("  Adding %s", dockerTag)
-	}
-
-	err = runCommand("docker", createArgs...)
-	if err != nil {
-		return
-	}
-
-	for _, tag := range tags {
-		dockerTag := fmt.Sprintf("%s:%s", dockerHubRepo, tag)
-		parts := strings.Split(tag, "-")
-		annotateArgs := []string{
-			"manifest",
-			"annotate",
-			releaseTag,
-			dockerTag,
-			"--arch",
-			parts[0],
-		}
-
-		if parts[0] == "arm64" {
-			annotateArgs = append(annotateArgs, "--os", "linux")
-		}
-
-		err = runCommand("docker", annotateArgs...)
-		if err != nil {
-			return
-		}
-	}
-
-	pushArgs := []string{
-		"manifest",
-		"push",
-		"--purge",
-		releaseTag,
-	}
-
-	err = runCommand("docker", pushArgs...)
-
-	return
-}
-
-func dockerHubTag(tag string) string {
-	if len(archPrefix) == 0 {
-		return tag
-	}
-
-	return fmt.Sprintf("%s-%s", archPrefix, tag)
 }
 
 func buildDocker() {
@@ -218,71 +157,12 @@ func buildDocker() {
 	log.Println("Successfully built and pushed:", strings.Join(successfulTags, ", "))
 }
 
-func buildManifest() {
-	releaseTags, _, err := data.GetGitlabReleases()
-
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	releaseTags = append([]string{"latest", "unstable"}, releaseTags...)
-
-	releases := map[string][]string{
-		"latest":   make([]string, 0),
-		"unstable": make([]string, 0),
-	}
-
-	for _, release := range releaseTags {
-		releases[release] = []string{}
-	}
-
-	dockerTags, err := data.GetDockerTags()
-
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	for _, tag := range dockerTags {
-		parts := strings.Split(tag, "-")
-
-		if len(parts) != 2 {
-			continue
-		}
-
-		if _, exists := releases[parts[1]]; !exists {
-			continue
-		}
-
-		releases[parts[1]] = append(releases[parts[1]], tag)
-	}
-
-	for _, tag := range releaseTags {
-		dockerTags := releases[tag]
-
-		if err := handleManifest(tag, dockerTags); err != nil {
-			log.Fatalln(err)
-		}
-	}
-}
-
 func main() {
-	var manifestOnly bool
-
 	flag.StringVar(&archPrefix, "arch", "", "the arch prefix to use for multi-arch support on Docker Hub")
 	flag.StringVar(&dockerHubRepo, "docker-hub-repo", "", "the docker hub repository to push to")
 	flag.StringVar(&dockerPath, "docker-path", "/usr/bin/docker", "the path to docker")
 	flag.BoolVar(&overwrite, "overwrite", false, "overwrite existing tags with new builds")
-	flag.BoolVar(&manifestOnly, "manifest", false, "build the manifest instead of the docker image")
 	flag.Parse()
-
-	if len(dockerHubRepo) == 0 {
-		log.Fatalln("--docker-hub-repo is required")
-	}
-
-	if manifestOnly {
-		buildManifest()
-		return
-	}
 
 	buildDocker()
 }
