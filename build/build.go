@@ -58,6 +58,7 @@ func handleRelease(commit string, tags ...string) (successful []string, err erro
 	builtTags := []string{}
 	buildArgs := []string{"buildx",
 		"build",
+		"--no-cache",
 		"--build-arg",
 		fmt.Sprintf("SIA_VERSION=%s", commit),
 		"--platform",
