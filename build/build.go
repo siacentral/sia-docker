@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"os/exec"
-	"runtime"
 	"strings"
 
 	"github.com/siacentral/docker-sia/build/data"
@@ -109,10 +108,12 @@ func handleManifest(release string, tags []string) (err error) {
 			"annotate",
 			releaseTag,
 			dockerTag,
-			"--os",
-			runtime.GOOS,
 			"--arch",
 			parts[0],
+		}
+
+		if parts[0] == "arm64" {
+			annotateArgs = append(annotateArgs, "--os", "arm64")
 		}
 
 		err = runCommand("docker", annotateArgs...)
