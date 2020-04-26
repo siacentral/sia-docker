@@ -105,8 +105,6 @@ func buildDocker() {
 
 	// loop through all found releases
 	for _, tag := range releases {
-		log.Println(tag)
-
 		// skip release if it's already found on docker and we're not overwriting
 		if !overwrite && builtTags[tag] {
 			continue
