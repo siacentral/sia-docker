@@ -83,13 +83,13 @@ func handleRelease(commit string, tags ...string) (successful []string, err erro
 }
 
 func buildDocker() {
-	releases, latest, err := data.GetGitlabReleases()
+	releases, latest, lastRC, err := data.GetGitlabReleases()
 
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	built, err := data.GetDockerTags()
+	built, err := data.GetDockerTags(dockerHubRepo)
 
 	if err != nil {
 		log.Fatalln(err)
@@ -105,6 +105,8 @@ func buildDocker() {
 
 	// loop through all found releases
 	for _, tag := range releases {
+		log.Println(tag)
+
 		// skip release if it's already found on docker and we're not overwriting
 		if !overwrite && builtTags[tag] {
 			continue
@@ -114,10 +116,26 @@ func buildDocker() {
 
 		if tag == latest {
 			tags = append(tags, "latest")
+
+			// if the lastRC is before the latest official release update the beta tag
+			if data.VersionCmp(lastRC, latest) == -1 {
+				tags = append(tags, "beta")
+			}
 		}
 
 		// tags are normalized without the leading "v", so we need to add it for the commit id
 		pushed, err := handleRelease("v"+tag, tags...)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		successfulTags = append(pushed, successfulTags...)
+	}
+
+	// rebuild the latest RC because the commit id has changed in the past
+	// also tags the release with "beta" since it is the latest RC
+	if data.VersionCmp(lastRC, latest) == 1 {
+		pushed, err := handleRelease("v"+lastRC, lastRC, "beta")
 		if err != nil {
 			log.Fatalln(err)
 		}

@@ -21,51 +21,51 @@ func TestGetVersion(t *testing.T) {
 }
 
 func TestVersionCmp(t *testing.T) {
-	if c := versionCmp("v1.4.4", "v1.4.2.1"); c != 1 {
+	if c := VersionCmp("v1.4.4", "v1.4.2.1"); c != 1 {
 		t.Errorf("expected %d got %d", 1, c)
 	}
 
-	if c := versionCmp("v1.4.2.1", "v1.4.4"); c != -1 {
+	if c := VersionCmp("v1.4.2.1", "v1.4.4"); c != -1 {
 		t.Errorf("expected %d got %d", -1, c)
 	}
 
-	if c := versionCmp("v1.4.4", "v1.4.4"); c != 0 {
+	if c := VersionCmp("v1.4.4", "v1.4.4"); c != 0 {
 		t.Errorf("expected %d got %d", 0, c)
 	}
 
-	if c := versionCmp("1.4.4", "1.4.2.1"); c != 1 {
+	if c := VersionCmp("1.4.4", "1.4.2.1"); c != 1 {
 		t.Errorf("expected %d got %d", 1, c)
 	}
 
-	if c := versionCmp("1.4.2.1", "1.4.4"); c != -1 {
+	if c := VersionCmp("1.4.2.1", "1.4.4"); c != -1 {
 		t.Errorf("expected %d got %d", -1, c)
 	}
 
-	if c := versionCmp("1.4.4", "1.4.4"); c != 0 {
+	if c := VersionCmp("1.4.4", "1.4.4"); c != 0 {
 		t.Errorf("expected %d got %d", 0, c)
 	}
 
-	if c := versionCmp("v1.4.4", "1.4.2.1"); c != 1 {
+	if c := VersionCmp("v1.4.4", "1.4.2.1"); c != 1 {
 		t.Errorf("expected %d got %d", 1, c)
 	}
 
-	if c := versionCmp("v1.4.2.1", "1.4.4"); c != -1 {
+	if c := VersionCmp("v1.4.2.1", "1.4.4"); c != -1 {
 		t.Errorf("expected %d got %d", -1, c)
 	}
 
-	if c := versionCmp("v1.4.4", "1.4.4"); c != 0 {
+	if c := VersionCmp("v1.4.4", "1.4.4"); c != 0 {
 		t.Errorf("expected %d got %d", 0, c)
 	}
 
-	if c := versionCmp("1.4.4", "v1.4.2.1"); c != 1 {
+	if c := VersionCmp("1.4.4", "v1.4.2.1"); c != 1 {
 		t.Errorf("expected %d got %d", 1, c)
 	}
 
-	if c := versionCmp("1.4.2.1", "v1.4.4"); c != -1 {
+	if c := VersionCmp("1.4.2.1", "v1.4.4"); c != -1 {
 		t.Errorf("expected %d got %d", -1, c)
 	}
 
-	if c := versionCmp("1.4.4", "v1.4.4"); c != 0 {
+	if c := VersionCmp("1.4.4", "v1.4.4"); c != 0 {
 		t.Errorf("expected %d got %d", 0, c)
 	}
 }

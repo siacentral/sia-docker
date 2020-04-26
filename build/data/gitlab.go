@@ -20,7 +20,7 @@ type (
 )
 
 //GetGitlabReleases returns all Sia release tags matching the format v0.0.0 or v0.0.0-rc0
-func GetGitlabReleases() (tags []string, latest string, err error) {
+func GetGitlabReleases() (tags []string, latest string, lastRC string, err error) {
 	var releaseMeta []tagInfo
 
 	req, err := http.NewRequest("GET", "https://gitlab.com/api/v4/projects/7508674/repository/tags?order_by=name", nil)
@@ -55,14 +55,16 @@ func GetGitlabReleases() (tags []string, latest string, err error) {
 		}
 
 		// versions below v1.4.1 won't build properly with the Dockerfile
-		if versionCmp(release.Name, "1.4.1") == -1 {
+		if VersionCmp(release.Name, "1.4.1") == -1 {
 			continue
 		}
 
 		tag := getVersion(release.Name)
 
-		// official releases should not contain extra information after the version
-		if !strings.Contains(release.Name, "-") && versionCmp(release.Name, latest) == 1 {
+		// check for latest RC release and latest official release
+		if strings.Contains(release.Name, "-") && VersionCmp(release.Name, lastRC) == 1 {
+			lastRC = tag
+		} else if !strings.Contains(release.Name, "-") && VersionCmp(release.Name, latest) == 1 {
 			latest = tag
 		}
 
@@ -70,7 +72,7 @@ func GetGitlabReleases() (tags []string, latest string, err error) {
 	}
 
 	sort.Slice(tags, func(i, j int) bool {
-		if versionCmp(tags[i], tags[j]) == -1 {
+		if VersionCmp(tags[i], tags[j]) == -1 {
 			return true
 		}
 

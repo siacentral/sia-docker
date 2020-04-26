@@ -3,6 +3,7 @@ package data
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"sort"
 )
@@ -15,8 +16,8 @@ type (
 	}
 )
 
-///GetDockerTags returns all release tags matching the format v0.0.0-rc0
-func GetDockerTags() (tags []string, err error) {
+// GetDockerTags returns all release tags matching the format v0.0.0-rc0
+func GetDockerTags(repo string) (tags []string, err error) {
 	getTags := func(url string) (*string, error) {
 		var releaseInfo dockerTagInfo
 
@@ -47,7 +48,7 @@ func GetDockerTags() (tags []string, err error) {
 		}
 
 		for _, tag := range releaseInfo.Results {
-			if !dockerRegex.MatchString(tag.Name) {
+			if !dockerReg.MatchString(tag.Name) {
 				continue
 			}
 
@@ -57,7 +58,7 @@ func GetDockerTags() (tags []string, err error) {
 		return releaseInfo.Next, nil
 	}
 
-	url := "https://hub.docker.com/v2/repositories/siacentral/sia/tags"
+	url := fmt.Sprintf("https://hub.docker.com/v2/repositories/%s/tags", repo)
 
 	for {
 		next, err := getTags(url)
@@ -74,7 +75,7 @@ func GetDockerTags() (tags []string, err error) {
 	}
 
 	sort.Slice(tags, func(i, j int) bool {
-		if versionCmp(tags[i], tags[j]) == -1 {
+		if VersionCmp(tags[i], tags[j]) == -1 {
 			return true
 		}
 
