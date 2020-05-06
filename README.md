@@ -1,6 +1,6 @@
 # Sia - Docker
 
-![Docker Pulls](https://img.shields.io/docker/pulls/siacentral/sia?color=19cf86&style=for-the-badge)
+[![Docker Pulls](https://img.shields.io/docker/pulls/siacentral/sia?color=19cf86&style=for-the-badge)](https://hub.docker.com/r/siacentral/sia)
 
 An unofficial docker image for Sia. Automatically builds Sia using the source code from the official repository: https://gitlab.com/NebulousLabs/Sia
 
