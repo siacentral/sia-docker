@@ -9,7 +9,7 @@ An unofficial docker image for Sia. Automatically builds Sia using the source co
 + latest - the latest stable Sia release
 + beta - the latest release candidate for the next version of Sia
 + versions - builds of exact Sia releases such as: `1.4.7` or `1.4.6`
-+ unstable - an unstable build of Sia's master branch. Updated every 15 minutes
++ unstable - an unstable build of Sia's master branch. Updated hourly
 
 **Get latest official release:**
 ```
