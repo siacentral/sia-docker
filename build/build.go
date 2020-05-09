@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -19,17 +20,27 @@ var (
 	built         = make(map[string]string)
 )
 
-func handleOutput(out io.Reader) {
+func handleOutput(f io.Writer, out io.Reader) {
 	in := bufio.NewScanner(out)
 
 	for in.Scan() {
 		text := in.Text()
 
-		log.Println(text)
+		_, err := f.Write([]byte(text + "\n"))
+		if err != nil {
+			log.Println("err writing log:", err)
+		}
 	}
 }
 
-func runCommand(command string, args ...string) error {
+func runCommand(logPath string, command string, args ...string) error {
+	f, err := os.Open(logPath)
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+
 	cmd := exec.Command(command, args...)
 
 	stdOut, err := cmd.StdoutPipe()
@@ -37,14 +48,14 @@ func runCommand(command string, args ...string) error {
 		return err
 	}
 
-	go handleOutput(stdOut)
+	go handleOutput(f, stdOut)
 
 	stdErr, err := cmd.StderrPipe()
 	if err != nil {
 		return err
 	}
 
-	go handleOutput(stdErr)
+	go handleOutput(f, stdErr)
 
 	if err := cmd.Run(); err != nil {
 		return err
@@ -56,6 +67,7 @@ func runCommand(command string, args ...string) error {
 func handleRelease(commit string, tags ...string) (successful []string, err error) {
 	log.Printf("Building %s from %s", strings.Join(tags, ", "), commit)
 
+	start := time.Now()
 	builtTags := []string{}
 	buildArgs := []string{"buildx",
 		"build",
@@ -75,12 +87,14 @@ func handleRelease(commit string, tags ...string) (successful []string, err erro
 	}
 
 	buildArgs = append(buildArgs, ".")
-	err = runCommand(dockerPath, buildArgs...)
+	err = runCommand(fmt.Sprintf("%s.log", commit), dockerPath, buildArgs...)
 	if err != nil {
 		return
 	}
 
 	successful = append(successful, builtTags...)
+
+	log.Printf(" Finished in %s", time.Since(start))
 
 	return
 }
