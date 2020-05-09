@@ -57,7 +57,7 @@ func handleRelease(commit string, tags ...string) (successful []string, err erro
 	log.Printf("Building %s from %s", strings.Join(tags, ", "), commit)
 
 	builtTags := []string{}
-	/*buildArgs := []string{"buildx",
+	buildArgs := []string{"buildx",
 		"build",
 		"--no-cache",
 		"--build-arg",
@@ -78,7 +78,7 @@ func handleRelease(commit string, tags ...string) (successful []string, err erro
 	err = runCommand(dockerPath, buildArgs...)
 	if err != nil {
 		return
-	}*/
+	}
 
 	successful = append(successful, builtTags...)
 
