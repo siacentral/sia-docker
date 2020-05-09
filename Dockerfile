@@ -2,6 +2,7 @@
 FROM golang:1.13-alpine AS buildgo
 
 ARG SIA_VERSION=master
+ARG RC=master
 
 RUN echo "Install Build Tools" && apk update && apk upgrade && apk add --no-cache gcc musl-dev openssl git make
 
@@ -13,7 +14,7 @@ WORKDIR /app
 RUN echo "Clone Sia Repo" && git clone -b $SIA_VERSION https://gitlab.com/NebulousLabs/Sia.git /app
 
 RUN echo "Build Sia" && mkdir /app/releases && go build -a -tags 'netgo' -trimpath \
-	-ldflags="-s -w -X 'gitlab.com/NebulousLabs/Sia/build.GitRevision=`git rev-parse --short HEAD`' -X 'gitlab.com/NebulousLabs/Sia/build.BuildTime=`date`'" \
+	-ldflags="-s -w -X 'gitlab.com/NebulousLabs/Sia/build.GitRevision=`git rev-parse --short HEAD`' -X 'gitlab.com/NebulousLabs/Sia/build.BuildTime=`date`' -X 'gitlab.com/NebulousLabs/Sia/build.ReleaseTag=${RC}'" \
 	-o /app/releases ./cmd/siad ./cmd/siac
 
 # run sia
