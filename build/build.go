@@ -34,7 +34,7 @@ func handleOutput(f io.Writer, out io.Reader) {
 }
 
 func runCommand(logPath string, command string, args ...string) error {
-	f, err := os.Open(logPath)
+	f, err := os.Create(logPath)
 	if err != nil {
 		return err
 	}
