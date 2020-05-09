@@ -8,6 +8,7 @@ import (
 	"log"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/siacentral/sia-docker/build/data"
 )
@@ -15,7 +16,7 @@ import (
 var (
 	dockerPath    string
 	dockerHubRepo string
-	overwrite     bool
+	built         = make(map[string]string)
 )
 
 func handleOutput(out io.Reader) {
@@ -56,11 +57,13 @@ func handleRelease(commit string, tags ...string) (successful []string, err erro
 	log.Printf("Building %s from %s", strings.Join(tags, ", "), commit)
 
 	builtTags := []string{}
-	buildArgs := []string{"buildx",
+	/*buildArgs := []string{"buildx",
 		"build",
 		"--no-cache",
 		"--build-arg",
 		fmt.Sprintf("SIA_VERSION=%s", commit),
+		"--build-arg",
+		fmt.Sprintf("RC=\"%s\"", data.GetRC(commit)),
 		"--platform",
 		"linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7",
 		"--push"}
@@ -75,93 +78,100 @@ func handleRelease(commit string, tags ...string) (successful []string, err erro
 	err = runCommand(dockerPath, buildArgs...)
 	if err != nil {
 		return
-	}
+	}*/
 
 	successful = append(successful, builtTags...)
 
 	return
 }
 
-func buildDocker() {
+func buildDocker() error {
 	releases, latest, lastRC, err := data.GetGitlabReleases()
 
 	if err != nil {
-		log.Fatalln(err)
-	}
-
-	built, err := data.GetDockerTags(dockerHubRepo)
-
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	builtTags := make(map[string]bool)
-
-	for _, tag := range built {
-		builtTags[tag] = true
+		return fmt.Errorf("error getting releases: %s", err)
 	}
 
 	successfulTags := []string{}
 
 	// loop through all found releases
-	for _, tag := range releases {
-		// skip release if it's already found on docker and we're not overwriting
-		if !overwrite && builtTags[tag] {
+	for _, release := range releases {
+		// skip release only if it matches the commit id. Since these aren't persisted this will now always build all releases on the first run.
+		if built[release.Name] == release.Target {
 			continue
 		}
 
-		tags := []string{tag}
+		tags := []string{release.Name}
 
-		if tag == latest {
+		if release.Name == latest.Name {
 			tags = append(tags, "latest")
 
 			// if the lastRC is before the latest official release update the beta tag
-			if data.VersionCmp(lastRC, latest) == -1 {
+			if data.VersionCmp(lastRC.Name, latest.Name) == -1 {
 				tags = append(tags, "beta")
 			}
 		}
 
 		// tags are normalized without the leading "v", so we need to add it for the commit id
-		pushed, err := handleRelease("v"+tag, tags...)
+		pushed, err := handleRelease("v"+release.Name, tags...)
 		if err != nil {
-			log.Fatalln(err)
+			return fmt.Errorf("error building %s: %s", release.Name, err)
 		}
 
 		successfulTags = append(pushed, successfulTags...)
+		built[release.Name] = release.Target
 	}
 
-	// rebuild the latest RC because the commit id has changed in the past
-	// also tags the release with "beta" since it is the latest RC
-	if data.VersionCmp(lastRC, latest) == 1 {
-		pushed, err := handleRelease("v"+lastRC, lastRC, "beta")
+	// check that we do not need to rebuild the last RC
+	if data.VersionCmp(lastRC.Name, latest.Name) == 1 && built[lastRC.Name] != lastRC.Target {
+		pushed, err := handleRelease("v"+lastRC.Name, lastRC.Name, "beta")
 		if err != nil {
-			log.Fatalln(err)
+			return fmt.Errorf("error building rc: %s", err)
 		}
 
 		successfulTags = append(pushed, successfulTags...)
+		built[lastRC.Name] = lastRC.Target
 	}
 
-	//build the unstable master branch
-	pushed, err := handleRelease("master", "unstable")
+	masterID, err := data.GetLastCommit("master")
 	if err != nil {
-		log.Fatalln(err)
+		return fmt.Errorf("error building rc: %s", err)
 	}
 
-	successfulTags = append(successfulTags, pushed...)
+	//build the unstable master branch if the commit id has changed
+	if built["master"] != masterID {
+		pushed, err := handleRelease("master", "unstable")
+		if err != nil {
+			return fmt.Errorf("error building unstable: %s", err)
+		}
 
-	//log pushed tags
+		successfulTags = append(successfulTags, pushed...)
+		built["master"] = masterID
+	}
+
+	if len(successfulTags) == 0 {
+		log.Println("no updated releases")
+		return nil
+	}
+
 	log.Println("Successfully built and pushed:", strings.Join(successfulTags, ", "))
+	return nil
 }
 
 func main() {
 	flag.StringVar(&dockerHubRepo, "docker-hub-repo", "", "the docker hub repository to push to")
 	flag.StringVar(&dockerPath, "docker-path", "/usr/bin/docker", "the path to docker")
-	flag.BoolVar(&overwrite, "overwrite", false, "overwrite existing tags with new builds")
 	flag.Parse()
 
 	if len(dockerHubRepo) == 0 {
 		log.Fatalln("--docker-hub-repo is required")
 	}
 
-	buildDocker()
+	for {
+		if err := buildDocker(); err != nil {
+			log.Println(err)
+		}
+
+		time.Sleep(time.Minute * 10)
+	}
 }

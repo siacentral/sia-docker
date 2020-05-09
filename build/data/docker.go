@@ -10,9 +10,13 @@ import (
 
 type (
 	dockerTagInfo struct {
-		Count   uint64    `json:"count"`
-		Next    *string   `json:"next"`
-		Results []tagInfo `json:"results"`
+		Count   uint64          `json:"count"`
+		Next    *string         `json:"next"`
+		Results []dockerRelease `json:"results"`
+	}
+
+	dockerRelease struct {
+		Name string `json:"name"`
 	}
 )
 

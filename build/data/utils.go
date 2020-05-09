@@ -32,6 +32,17 @@ func compareNumericString(a, b string) int {
 	return 0
 }
 
+// GetRC returns the rc portion of the version string
+func GetRC(v string) string {
+	sections := strings.Split(v, "-")
+
+	if len(sections) <= 1 {
+		return ""
+	}
+
+	return sections[1]
+}
+
 // VersionCmp compares two version strings
 func VersionCmp(a, b string) int {
 	l := 0

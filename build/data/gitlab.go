@@ -3,25 +3,60 @@ package data
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"net/url"
 	"sort"
 	"strings"
 )
 
 type (
-	releaseInfo struct {
-		TagName     string `json:"tag_name"`
-		Description string `json:"description"`
+	// GitlabRelease info about the latest releases
+	GitlabRelease struct {
+		Name   string `json:"name"`
+		Target string `json:"target"`
 	}
 
-	tagInfo struct {
-		Name string `json:"name"`
+	commitInfo struct {
+		ID string `json:"id"`
 	}
 )
 
+// GetLastCommit returns the last commit of the target ref
+func GetLastCommit(ref string) (string, error) {
+	var commitMeta []commitInfo
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("https://gitlab.com/api/v4/projects/7508674/repository/commits?ref=%s", url.QueryEscape(ref)), nil)
+
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Encoding", "deflate, gzip")
+
+	resp, err := client.Do(req)
+
+	if err != nil {
+		return "", err
+	}
+
+	defer drainAndClose(resp.Body)
+
+	if err = json.NewDecoder(resp.Body).Decode(&commitMeta); err != nil {
+		return "", err
+	}
+
+	if len(commitMeta) == 0 {
+		return "", errors.New("no commits")
+	}
+
+	return commitMeta[0].ID, nil
+}
+
 //GetGitlabReleases returns all Sia release tags matching the format v0.0.0 or v0.0.0-rc0
-func GetGitlabReleases() (tags []string, latest string, lastRC string, err error) {
-	var releaseMeta []tagInfo
+func GetGitlabReleases() (tags []GitlabRelease, latest GitlabRelease, lastRC GitlabRelease, err error) {
+	var releaseMeta []GitlabRelease
 
 	req, err := http.NewRequest("GET", "https://gitlab.com/api/v4/projects/7508674/repository/tags?order_by=name", nil)
 
@@ -62,17 +97,22 @@ func GetGitlabReleases() (tags []string, latest string, lastRC string, err error
 		tag := getVersion(release.Name)
 
 		// check for latest RC release and latest official release
-		if strings.Contains(release.Name, "-") && VersionCmp(release.Name, lastRC) == 1 {
-			lastRC = tag
-		} else if !strings.Contains(release.Name, "-") && VersionCmp(release.Name, latest) == 1 {
-			latest = tag
+		if strings.Contains(release.Name, "-") && VersionCmp(release.Name, lastRC.Name) == 1 {
+			lastRC.Name = tag
+			lastRC.Target = release.Target
+		} else if !strings.Contains(release.Name, "-") && VersionCmp(release.Name, latest.Name) == 1 {
+			latest.Name = tag
+			latest.Target = release.Target
 		}
 
-		tags = append(tags, tag)
+		tags = append(tags, GitlabRelease{
+			Name:   tag,
+			Target: release.Target,
+		})
 	}
 
 	sort.Slice(tags, func(i, j int) bool {
-		if VersionCmp(tags[i], tags[j]) == -1 {
+		if VersionCmp(tags[i].Name, tags[j].Name) == -1 {
 			return true
 		}
 
