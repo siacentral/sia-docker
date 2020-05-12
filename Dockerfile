@@ -22,7 +22,7 @@ FROM alpine:latest
 
 ENV SIA_MODULES gctwhr
 
-EXPOSE 9980 9981 9982
+EXPOSE 9980 9981 9982 9983
 
 COPY --from=buildgo /app/releases ./
 
@@ -30,4 +30,5 @@ ENTRYPOINT ./siad \
 	--disable-api-security \
 	-d /sia-data \
 	--modules $SIA_MODULES \
-	--api-addr ":9980"
+	--api-addr ":9980" \
+	"$@"
