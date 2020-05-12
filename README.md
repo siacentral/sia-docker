@@ -43,6 +43,7 @@ docker run \
   --publish 127.0.0.1:9980:9980 \
   --publish 9981:9981 \
   --publish 9982:9982 \
+  --publish 9983:9983 \
   --name sia \
    siacentral/sia
 ```
@@ -65,6 +66,35 @@ generated. You may need to copy the new API password when connecting outside of
 the container. To force the same API password to be used you can add
 `-e SIA_API_PASSWORD=yourpasswordhere` to the `docker run` command. This will
 ensure that the API password stays the same between updates and restarts.
+
+### Command Line Flags
+
+Additional siad command line flags can be passed in by appending `-c` to docker run.
+
+
+#### Change SiaMux port from 9983 to 8883
+```
+docker run \
+  --detach
+  --restart unless-stopped \
+ --publish 127.0.0.1:9980:9980 \
+ --public 9981:9981 \
+ --publish 9982:9982 \
+ --publish 8883:8883 \
+ siacentral/sia -c --siamuxaddr ":8883"
+ ```
+
+#### Change Sia API user-agent from "Sia-Agent" to "Custom-Agent"
+ ```
+docker run \
+  --detach
+  --restart unless-stopped \
+ --publish 127.0.0.1:9980:9980 \
+ --public 9981:9981 \
+ --publish 9982:9982 \
+ siacentral/sia -c --agent "Custom-Agent"
+ ```
+
 
 ### Using Specific Modules
 
@@ -113,6 +143,7 @@ docker run \
   --publish 127.0.0.1:9980:9980 \
   --publish 9981:9981 \
   --publish 9982:9982 \
+  --publish 9983:9983 \
   --name sia \
    siacentral/sia
 ```
