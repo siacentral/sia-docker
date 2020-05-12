@@ -81,7 +81,7 @@ docker run \
  --public 9981:9981 \
  --publish 9982:9982 \
  --publish 8883:8883 \
- siacentral/sia -c --siamuxaddr ":8883"
+ siacentral/sia -c --siamux-addr ":8883"
  ```
 
 #### Change Sia API user-agent from "Sia-Agent" to "Custom-Agent"
