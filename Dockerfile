@@ -20,7 +20,7 @@ RUN echo "Build Sia" && mkdir /app/releases && go build -a -tags 'netgo' -trimpa
 # run sia
 FROM alpine:latest
 
-ENV SIA_MODULES gctwhr
+ENV SIA_MODULES gctwhrf
 
 EXPOSE 9981 9982 9983
 
