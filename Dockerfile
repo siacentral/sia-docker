@@ -1,5 +1,5 @@
 # build sia
-FROM golang:1.13-alpine AS buildgo
+FROM golang:1.15-alpine AS buildgo
 
 ARG SIA_VERSION=master
 ARG RC=master
