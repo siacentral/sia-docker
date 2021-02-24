@@ -20,15 +20,10 @@ RUN echo "Build Sia" && mkdir /app/releases && go build -a -tags 'netgo' -trimpa
 # run sia
 FROM alpine:latest
 
-ENV SIA_MODULES gctwhrf
+COPY --from=buildgo /app/releases /usr/local/bin
 
-EXPOSE 9981 9982 9983
+EXPOSE 9981 9982 9983 9984
 
-COPY --from=buildgo /app/releases ./
+VOLUME [ "/sia-data" ]
 
-ENTRYPOINT ./siad \
-	--disable-api-security \
-	-d /sia-data \
-	--modules $SIA_MODULES \
-	--api-addr ":9980" \
-	"$@"
+ENTRYPOINT [ "siad", "--disable-api-security", "-d", "/sia-data", "--api-addr", ":9980" ]
