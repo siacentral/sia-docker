@@ -37,15 +37,15 @@ docker pull siacentral/sia:unstable
 ```
 docker volume create sia-data
 docker run \
-  --detach \
-  --restart unless-stopped \
-  --mount type=volume,src=sia-data,target=/sia-data \
-  --publish 127.0.0.1:9980:9980 \
-  --publish 9981:9981 \
-  --publish 9982:9982 \
-  --publish 9983:9983 \
-  --name sia \
-   siacentral/sia
+	--detach \
+	--restart unless-stopped \
+	--mount type=volume,src=sia-data,target=/sia-data \
+	--publish 127.0.0.1:9980:9980 \
+	--publish 9981:9981 \
+	--publish 9982:9982 \
+	--publish 9983:9983 \
+	--name sia \
+	siacentral/sia
 ```
 
 It is important to never `--publish` port `9980` to anything but 
@@ -59,6 +59,28 @@ blockchain to remain consistent between container restarts or updates.
 Containers should never share volumes. If multiple sia containers are 
 needed one unique volume should be created per container.
 
+### Docker Compose
+```yml
+services:
+  sia:
+    container_name: sia
+    image: siacentral/sia:latest
+    networks:
+      - sia
+    ports:
+      - 127.0.0.1:9980:9980
+      - 9981:9981
+      - 9982:9982
+      - 9983:9983
+      - 9984:9984
+    volumes:
+    - sia-data:/sia-data
+    restart: unless-stopped
+
+volumes:
+  sia-data:
+```
+
 ### Sia API Password
 
 When you create or update the Sia container a random API password will be
@@ -69,83 +91,103 @@ ensure that the API password stays the same between updates and restarts.
 
 ### Command Line Flags
 
-Additional siad command line flags can be passed in by appending `-c` to docker run.
+Additional siad command line flags can be passed in by appending them to docker
+run.
+
+#### Change API port from 9980 to 8880
+```
+docker run \
+	--detach
+	--restart unless-stopped \
+	--publish 127.0.0.1:9980:9980 \
+	--public 9981:9981 \
+	--publish 9982:9982 \
+	--publish 8883:8883 \
+	siacentral/sia -c --api-addr ":8880"
+ ```
 
 
 #### Change SiaMux port from 9983 to 8883
 ```
 docker run \
-  --detach
-  --restart unless-stopped \
- --publish 127.0.0.1:9980:9980 \
- --public 9981:9981 \
- --publish 9982:9982 \
- --publish 8883:8883 \
- siacentral/sia -c --siamux-addr ":8883"
+	--detach
+	--restart unless-stopped \
+	--publish 127.0.0.1:9980:9980 \
+	--public 9981:9981 \
+	--publish 9982:9982 \
+	--publish 8883:8883 \
+	siacentral/sia --siamux-addr ":8883"
  ```
 
 #### Change Sia API user-agent from "Sia-Agent" to "Custom-Agent"
  ```
 docker run \
-  --detach
-  --restart unless-stopped \
- --publish 127.0.0.1:9980:9980 \
- --public 9981:9981 \
- --publish 9982:9982 \
- siacentral/sia -c --agent "Custom-Agent"
+	--detach
+	--restart unless-stopped \
+	--publish 127.0.0.1:9980:9980 \
+	--public 9981:9981 \
+	--publish 9982:9982 \
+	siacentral/sia --agent "Custom-Agent"
  ```
 
+#### Only run the minimum required modules
+ ```
+docker run \
+	--detach
+	--restart unless-stopped \
+	--publish 127.0.0.1:9980:9980 \
+	--public 9981:9981 \
+	--publish 9982:9982 \
+	siacentral/sia -M gct
+ ```
 
 ### Using Specific Modules
 
-By specifying the environment variable `SIA_MODULES` you can pass in different combinations of
-Sia modules to run. For example: `-e SIA_MODULES="gct"` tells Sia to only run
-the gateway, consensus, and transactionpool modules.
+You can pass in different combinations of Sia modules to run by modifying the 
+command used to create the container. For example: `-M gct` tells Sia to only
+run the gateway, consensus, and transactionpool modules.
 
 #### Consensus Only
 ```
 docker volume create sia-data
 docker run \
-  --detach \
-  --restart unless-stopped \
-  -e SIA_MODULES="gct" \
-  --mount type=volume,src=sia-data,target=/sia-data \
-  --publish 127.0.0.1:9980:9980 \
-  --publish 9981:9981 \
-  --publish 9982:9982 \
-  --name sia \
-   siacentral/sia
+	--detach \
+	--restart unless-stopped \
+	--mount type=volume,src=sia-data,target=/sia-data \
+	--publish 127.0.0.1:9980:9980 \
+	--publish 9981:9981 \
+	--publish 9982:9982 \
+	--name sia \
+	siacentral/sia -M gct
 ```
 
 #### Renter Only
 ```
 docker volume create sia-data
 docker run \
-  --detach \
-  --restart unless-stopped \
-  -e SIA_MODULES="gctwr" \
-  --mount type=volume,src=sia-data,target=/sia-data \
-  --publish 127.0.0.1:9980:9980 \
-  --publish 9981:9981 \
-  --publish 9982:9982 \
-  --name sia \
-   siacentral/sia
+	--detach \
+	--restart unless-stopped \
+	--mount type=volume,src=sia-data,target=/sia-data \
+	--publish 127.0.0.1:9980:9980 \
+	--publish 9981:9981 \
+	--publish 9982:9982 \
+	--name sia \
+	siacentral/sia -M gctwr
 ```
 
 #### Host Only
 ```
 docker volume create sia-data
 docker run \
-  --detach \
-  --restart unless-stopped \
-  -e SIA_MODULES="gctwh" \
-  --mount type=volume,src=sia-data,target=/sia-data \
-  --publish 127.0.0.1:9980:9980 \
-  --publish 9981:9981 \
-  --publish 9982:9982 \
-  --publish 9983:9983 \
-  --name sia \
-   siacentral/sia
+	--detach \
+	--restart unless-stopped \
+	--mount type=volume,src=sia-data,target=/sia-data \
+	--publish 127.0.0.1:9980:9980 \
+	--publish 9981:9981 \
+	--publish 9982:9982 \
+	--publish 9983:9983 \
+	--name sia \
+	siacentral/sia -M gctwh
 ```
 
 Hosting may require additional volumes passed into the container to map
