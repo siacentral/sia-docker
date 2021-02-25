@@ -65,8 +65,6 @@ services:
   sia:
     container_name: sia
     image: siacentral/sia:latest
-    networks:
-      - sia
     ports:
       - 127.0.0.1:9980:9980
       - 9981:9981
