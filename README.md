@@ -97,11 +97,11 @@ run.
 docker run \
 	--detach
 	--restart unless-stopped \
-	--publish 127.0.0.1:9980:9980 \
+	--publish 127.0.0.1:8880:8880 \
 	--public 9981:9981 \
 	--publish 9982:9982 \
-	--publish 8883:8883 \
-	siacentral/sia -c --api-addr ":8880"
+	--publish 9983:9983 \
+	siacentral/sia --api-addr ":8880"
  ```
 
 
