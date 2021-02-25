@@ -128,7 +128,7 @@ volumes:
 services:
   sia:
     container_name: sia
-	command: --api-addr :8880
+    command: --api-addr :8880
     image: siacentral/sia:latest
     ports:
       - 127.0.0.1:8880:8880
@@ -150,7 +150,7 @@ volumes:
 services:
   sia:
     container_name: sia
-	command: --siamux-addr :8883
+    command: --siamux-addr :8883
     image: siacentral/sia:latest
     ports:
       - 127.0.0.1:9980:9980
@@ -171,7 +171,7 @@ volumes:
 services:
   sia:
     container_name: sia
-	command: -M gct
+    command: -M gct
     image: siacentral/sia:latest
     ports:
       - 127.0.0.1:9980:9980
