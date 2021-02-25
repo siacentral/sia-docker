@@ -116,7 +116,7 @@ services:
       - 9983:9983
       - 9984:9984
     volumes:
-    - sia-data:/sia-data
+      - sia-data:/sia-data
     restart: unless-stopped
 
 volumes:
@@ -137,7 +137,7 @@ services:
       - 9983:9983
       - 9984:9984
     volumes:
-    - sia-data:/sia-data
+      - sia-data:/sia-data
     restart: unless-stopped
 
 volumes:
@@ -159,7 +159,7 @@ services:
       - 8883:8883
       - 9984:9984
     volumes:
-    - sia-data:/sia-data
+      - sia-data:/sia-data
     restart: unless-stopped
 
 volumes:
@@ -180,7 +180,7 @@ services:
       - 9983:9983
       - 9984:9984
     volumes:
-    - sia-data:/sia-data
+      - sia-data:/sia-data
     restart: unless-stopped
 
 volumes:
