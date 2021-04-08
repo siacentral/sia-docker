@@ -24,6 +24,9 @@ COPY --from=buildgo /app/releases /usr/local/bin
 
 EXPOSE 9981 9982 9983 9984
 
+ENV SIA_WALLET_PASSWORD=
+ENV SIA_API_PASSWORD=
+
 VOLUME [ "/sia-data" ]
 
 ENTRYPOINT [ "siad", "--disable-api-security", "-d", "/sia-data", "--api-addr", ":9980" ]
