@@ -24,7 +24,9 @@ COPY --from=buildgo /app/releases /usr/local/bin
 
 EXPOSE 9981 9982 9983 9984
 
+# SIA_WALLET_PASSWORD is used to automatically unlock the wallet
 ENV SIA_WALLET_PASSWORD=
+# SIA_API_PASSWORD sets the password used for API authentication
 ENV SIA_API_PASSWORD=
 
 VOLUME [ "/sia-data" ]
