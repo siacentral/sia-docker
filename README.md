@@ -5,8 +5,8 @@
 An unofficial docker image for Sia. Automatically builds Sia using the source code from the official repository: https://gitlab.com/NebulousLabs/Sia
 
 ### Breaking change with Sia v1.5.6
-With the Sia v1.5.6 update two potentially breaking changes will be made to this container: 
-+ The `SIA_MODULES` environment variable will be removed, this was left in
+With the Sia v1.5.6 update two potentially breaking changes have been made to this container: 
++ The `SIA_MODULES` environment variable has been be removed, this was left in
 largely for compatibility with `mtlynch/sia`. Instead you should pass `-M gct` directly at the end of `docker run` or as `command: -M gct` in docker-compose. 
 + siac and siad have been moved to `/usr/local/bin` for easier usage
 
