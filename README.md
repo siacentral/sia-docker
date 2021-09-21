@@ -1,8 +1,13 @@
 # Sia - Docker
 
-[![Docker Pulls](https://img.shields.io/docker/pulls/siacentral/sia?color=19cf86&style=for-the-badge)](https://hub.docker.com/r/siacentral/sia)
+[![Docker Pulls](https://img.shields.io/docker/pulls/siacentral/sia?color=19cf86&style=for-the-badge)](https://github.com/SiaFoundation/siad/pkgs/container/siad)
 
-An unofficial docker image for Sia. Automatically builds Sia using the source code from the official repository: https://gitlab.com/NebulousLabs/Sia
+An unofficial docker image for Sia. Automatically builds Sia using the source code from the official repository: https://github.com/SiaFoundation/siad
+
+### Depreciation
+
+Sia now has an official container based on this image: `ghcr.io/siafoundation/siad`.
+Updates will continue to happen automatically, but users should switch to the [official image](https://github.com/orgs/SiaFoundation/packages?repo_name=siad).
 
 ### Breaking change with Sia v1.5.6
 With the Sia v1.5.6 update two potentially breaking changes have been made to this container: 
@@ -13,28 +18,22 @@ largely for compatibility with `mtlynch/sia`. Instead you should pass `-M gct` d
 # Release Tags
 
 + latest - the latest stable Sia release
-+ beta - the latest release candidate for the next version of Sia
 + versions - builds of exact Sia releases such as: `1.5.4` or `1.5.5`
-+ unstable - an unstable build of Sia's current master branch.
++ master - an unstable build of Sia's current master branch.
 
 **Get latest official release:**
 ```
-docker pull siacentral/sia:latest
-```
-
-**Get latest release candidate:**
-```
-docker pull siacentral/sia:beta
+docker pull ghcr.io/siafoundation/siad:latest
 ```
 
 **Get Sia v1.5.4**
 ```
-docker pull siacentral/sia:1.5.4
+docker pull ghcr.io/siafoundation/siad:1.5.4
 ```
 
-**Get unstable dev branch**
+**Get current development version**
 ```
-docker pull siacentral/sia:unstable
+docker pull ghcr.io/siafoundation/siad:master
 ```
 
 # Usage
@@ -58,7 +57,7 @@ docker run \
 	--publish 9982:9982 \
 	--publish 9983:9983 \
 	--name sia \
-	siacentral/sia
+	ghcr.io/siafoundation/siad
 ```
 
 ### Command Line Flags
@@ -75,7 +74,7 @@ docker run \
 	--publish 9981:9981 \
 	--publish 9982:9982 \
 	--publish 9983:9983 \
-	siacentral/sia --api-addr ":8880"
+	ghcr.io/siafoundation/siad --api-addr ":8880"
  ```
 
 
@@ -88,7 +87,7 @@ docker run \
 	--publish 9981:9981 \
 	--publish 9982:9982 \
 	--publish 8883:8883 \
-	siacentral/sia --siamux-addr ":8883"
+	ghcr.io/siafoundation/siad --siamux-addr ":8883"
  ```
 
 #### Only run the minimum required modules
@@ -99,7 +98,7 @@ docker run \
 	--publish 127.0.0.1:9980:9980 \
 	--publish 9981:9981 \
 	--publish 9982:9982 \
-	siacentral/sia -M gct
+	ghcr.io/siafoundation/siad -M gct
  ```
 
 ## Docker Compose
@@ -108,7 +107,7 @@ docker run \
 services:
   sia:
     container_name: sia
-    image: siacentral/sia:latest
+    image: ghcr.io/siafoundation/siad:latest
     ports:
       - 127.0.0.1:9980:9980
       - 9981:9981
@@ -129,7 +128,7 @@ services:
   sia:
     container_name: sia
     command: --api-addr :8880
-    image: siacentral/sia:latest
+    image: ghcr.io/siafoundation/siad:latest
     ports:
       - 127.0.0.1:8880:8880
       - 9981:9981
@@ -151,7 +150,7 @@ services:
   sia:
     container_name: sia
     command: --siamux-addr :8883
-    image: siacentral/sia:latest
+    image: ghcr.io/siafoundation/siad:latest
     ports:
       - 127.0.0.1:9980:9980
       - 9981:9981
@@ -172,7 +171,7 @@ services:
   sia:
     container_name: sia
     command: -M gct
-    image: siacentral/sia:latest
+    image: ghcr.io/siafoundation/siad:latest
     ports:
       - 127.0.0.1:9980:9980
       - 9981:9981
@@ -185,6 +184,24 @@ services:
 
 volumes:
   sia-data:
+```
+
+## Interacting with Sia
+You can interact with Sia by using the bundled `siac` through `docker exec` or downloading `siac` separately.
+
+#### Print help text
+```
+docker exec -it sia /siac --help
+```
+
+#### Get current sync status
+```
+docker exec -it sia /siac consensus
+```
+
+#### Get wallet balance
+```
+docker exec -it sia /siac wallet
 ```
 
 ## Sia API Password
@@ -208,13 +225,3 @@ run a Sia renter.
 Hosting may require additional volumes passed into the container to map
 local drives into the container. These can be added by specifying
 docker's `-v` or `--mount` flag.
-
-## Building
-
-To build a specific commit or version of Sia specify the tag or branch of the 
-repository using Docker's `--build-arg` flag. Any valid `git checkout` ref can
-be used with the `SIA_VERSION` build arg.
-
-```
-docker build --build-arg SIA_VERSION=v1.4.7 -t siacentral/sia:1.4.7 .
-```
